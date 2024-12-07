@@ -9,7 +9,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.grey[800],
         title: const Text(
-            'To Do List',
+            'ToDone',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -25,11 +25,13 @@ class HomeScreen extends StatelessWidget {
             children: <Widget>[
               Image.asset(
                 'images/home_screen.jpg',
-                width: 200,
+                width: 400,
               ),
               const Text(
-                'To do list merupakan aplikasi untuk mencatat to do list yang ada pada keseharian anda'
+                'ToDone merupakan aplikasi untuk mencatat to do list yang ada pada keseharian anda',
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(
