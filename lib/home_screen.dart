@@ -17,9 +17,38 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
       ),
-      body: const ElevatedButton(
-        onPressed: null,
-        child: Text('Click Me'),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Image.asset(
+                'images/home_screen.jpg',
+                width: 200,
+              ),
+              const Text(
+                'To do list merupakan aplikasi untuk mencatat to do list yang ada pada keseharian anda'
+              ),
+              OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ),
+                child: const Text(
+                  'Start Your To-Do List',
+                  style: TextStyle(
+                    color: Colors.black
+                    ),
+                  ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
