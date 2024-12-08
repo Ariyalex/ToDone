@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_list/add_list.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final List<String> _toDoList = [];
+
+  void _addToDoItem(String item) {
+    setState(() {
+      _toDoList.add(item);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,38 +33,60 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Image.asset(
-                'images/home_screen.jpg',
-                width: 400,
-              ),
-              const Text(
-                'ToDone merupakan aplikasi untuk mencatat to do list yang ada pada keseharian anda',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
-                ),
-                child: const Text(
-                  'Start Your To-Do List',
-                  style: TextStyle(
-                    color: Colors.black
+        child: Column(
+          children: <Widget>[
+            if (_toDoList.isEmpty) ...[
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'images/home_screen.jpg',
+                      width: 400,
                     ),
-                  ),
-              )
+                    const Text(
+                      'Belum ada To Do List, coba tambahkan lewat tombol di bawah',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ],
-          ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _toDoList.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: CircleAvatar(
+                      child: Text('${index + 1}'),
+                    ),
+                    title: Text(_toDoList[index]),
+                    trailing: Checkbox(
+                      value: false,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _toDoList.removeAt(index);
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddList()),
+          );
+          if (result != null) {
+            _addToDoItem(result);
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
