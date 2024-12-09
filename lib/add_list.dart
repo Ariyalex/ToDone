@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_list/data/list.dart';
 
 class AddList extends StatelessWidget {
   final TextEditingController _controller = TextEditingController();
@@ -41,7 +42,8 @@ class AddList extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context, _controller.text);
+                final newItem = Todolist(_controller.text);
+                Navigator.pop(context, newItem); // Pass new item back to HomeScreen
               },
               child: const Text('Simpan'),
             ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/add_list.dart';
+import 'package:to_do_list/data/list.dart'; // Import the Todolist class
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'dart:convert'; // Import json
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,12 +12,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<String> _toDoList = [];
+  @override
+  void initState() {
+    super.initState();
+    _loadToDoList();
+  }
 
-  void _addToDoItem(String item) {
+  void _loadToDoList() async {
+    await Todolist.loadTodoList();
+    setState(() {});
+  }
+
+  void _addToDoItem(Todolist item) async {
     setState(() {
-      _toDoList.add(item);
+      Todolist.addTodoItem(item.listTodo); // Add item to Todolist
     });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('todoList', Todolist.todoList.map((e) => json.encode(e.toJson())).toList());
+  }
+
+  void _updateToDoList() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('todoList', Todolist.todoList.map((e) => json.encode(e.toJson())).toList());
   }
 
   @override
@@ -35,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: <Widget>[
-            if (_toDoList.isEmpty) ...[
+            if (Todolist.todoList.isEmpty) ...[ // Check if Todolist is empty
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -51,28 +70,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-            ],
-            Expanded(
-              child: ListView.builder(
-                itemCount: _toDoList.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      child: Text('${index + 1}'),
-                    ),
-                    title: Text(_toDoList[index]),
-                    trailing: Checkbox(
-                      value: false,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _toDoList.removeAt(index);
-                        });
-                      },
-                    ),
-                  );
-                },
+            ] else ...[
+              Expanded(
+                child: ListView.builder(
+                  itemCount: Todolist.todoList.length, // Use Todolist length
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text('${index + 1}'),
+                      ),
+                      title: Row(
+                        children: <Widget>[
+                          Text(Todolist.todoList[index].listTodo),
+                          if (Todolist.todoList[index].isDone)
+                            const Icon(Icons.check, color: Colors.green),
+                        ],
+                      ), // Use Todolist item
+                      trailing: Checkbox(
+                        value: Todolist.todoList[index].isDone, // Use isDone status
+                        onChanged: (bool? value) {
+                          setState(() {
+                            Todolist.todoList[index].isDone = value ?? false; // Update isDone status
+                          });
+                          _updateToDoList(); // Save updated status
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
