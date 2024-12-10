@@ -9,6 +9,8 @@ class Todolist {
 
   static List<Todolist> todoList = [];
 
+  set title(String title) {}
+
   static void addTodoItem(String item) {
     todoList.add(Todolist(item));
   }

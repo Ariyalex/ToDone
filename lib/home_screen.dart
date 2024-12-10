@@ -26,11 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _removeToDoItem(int index) async {
     if (index >= 0 && index < Todolist.todoList.length) {
-      setState(() {
-        Todolist.todoList.removeAt(index);
-      });
-      await Todolist.saveTodoList();
-      setState(() {}); // Ensure the UI updates immediately
+      Todolist.todoList.removeAt(index);  // Hapus item
+      await Todolist.saveTodoList();      // Simpan perubahan
+      setState(() {});                    // Perbarui UI
     }
   }
 
@@ -38,8 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       Todolist.addTodoItem(item.listTodo); // Add item to Todolist
     });
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('todoList', Todolist.todoList.map((e) => json.encode(e.toJson())).toList());
+    await Todolist.saveTodoList(); // Save the updated todo list
+    setState(() {}); // Ensure the UI updates immediately
   }
 
   void _updateToDoList() async {
@@ -66,19 +64,21 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: <Widget>[
             if (Todolist.todoList.isEmpty) ...[ // Check if Todolist is empty
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'images/home_screen.jpg',
-                      width: 400,
-                    ),
-                    const Text(
-                      'Belum ada To Do List, coba tambahkan lewat tombol di bawah',
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'images/home_screen.jpg',
+                        width: 400,
+                      ),
+                      const Text(
+                        'Belum ada To Do List, coba tambahkan lewat tombol di bawah',
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ] else ...[
@@ -86,56 +86,61 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView.builder(
                   itemCount: Todolist.todoList.length, // Use Todolist length
                   itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () async {
-                        if (index >= 0 && index < Todolist.todoList.length) {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditList(
-                                index: index,
-                                initialText: Todolist.todoList[index].listTodo, // Pass the text of the tapped index
+                    return Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            if (index >= 0 && index < Todolist.todoList.length) {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditList(
+                                    index: index,
+                                    initialText: Todolist.todoList[index].listTodo,
+                                  ),
+                                ),
+                              );
+                              if (result != null && result != 'deleted') {
+                                setState(() {
+                                  Todolist.todoList[index].listTodo = result.listTodo;
+                                  Todolist.todoList[index].isDone = result.isDone;
+                                });
+                                await Todolist.saveTodoList();
+                              } else if (result == 'deleted') {
+                                _removeToDoItem(index);  // Panggil fungsi penghapusan
+                              }
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text('${index + 1}'),
+                              ),
+                              title: Row(
+                                children: <Widget>[
+                                  Text(Todolist.todoList[index].listTodo),
+                                  if (Todolist.todoList[index].isDone)
+                                    const Icon(Icons.check, color: Colors.green),
+                                ],
+                              ), // Use Todolist item
+                              trailing: Checkbox(
+                                value: Todolist.todoList[index].isDone, // Use isDone status
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    Todolist.todoList[index].isDone = value ?? false; // Update isDone status
+                                  });
+                                  _updateToDoList(); // Save updated status
+                                },
                               ),
                             ),
-                          );
-                          if (result != null && result != 'deleted') {
-                            setState(() {
-                              Todolist.todoList[index].listTodo = result.listTodo;
-                              Todolist.todoList[index].isDone = result.isDone;
-                            });
-                            _updateToDoList();
-                          } else if (result == 'deleted') {
-                            _removeToDoItem(index);
-                          }
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            child: Text('${index + 1}'),
-                          ),
-                          title: Row(
-                            children: <Widget>[
-                              Text(Todolist.todoList[index].listTodo),
-                              if (Todolist.todoList[index].isDone)
-                                const Icon(Icons.check, color: Colors.green),
-                            ],
-                          ), // Use Todolist item
-                          trailing: Checkbox(
-                            value: Todolist.todoList[index].isDone, // Use isDone status
-                            onChanged: (bool? value) {
-                              setState(() {
-                                Todolist.todoList[index].isDone = value ?? false; // Update isDone status
-                              });
-                              _updateToDoList(); // Save updated status
-                            },
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 10), // Add gap between list items
+                      ],
                     );
                   },
                 ),
