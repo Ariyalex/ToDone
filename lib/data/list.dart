@@ -23,6 +23,11 @@ class Todolist {
     isDone: json['isDone'],
   );
 
+  static Future<void> saveTodoList() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('todoList', todoList.map((e) => json.encode(e.toJson())).toList());
+  }
+
   static Future<void> loadTodoList() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? todoListString = prefs.getStringList('todoList');

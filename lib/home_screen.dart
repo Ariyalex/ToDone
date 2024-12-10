@@ -3,6 +3,7 @@ import 'package:to_do_list/add_list.dart';
 import 'package:to_do_list/data/list.dart'; // Import the Todolist class
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import 'dart:convert'; // Import json
+import 'package:to_do_list/edit.dart'; // Import the EditList class
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +22,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadToDoList() async {
     await Todolist.loadTodoList();
     setState(() {});
+  }
+
+  void _removeToDoItem(int index) async {
+    if (index >= 0 && index < Todolist.todoList.length) {
+      setState(() {
+        Todolist.todoList.removeAt(index);
+      });
+      await Todolist.saveTodoList();
+      setState(() {}); // Ensure the UI updates immediately
+    }
   }
 
   void _addToDoItem(Todolist item) async {
@@ -75,25 +86,55 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView.builder(
                   itemCount: Todolist.todoList.length, // Use Todolist length
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: Text('${index + 1}'),
-                      ),
-                      title: Row(
-                        children: <Widget>[
-                          Text(Todolist.todoList[index].listTodo),
-                          if (Todolist.todoList[index].isDone)
-                            const Icon(Icons.check, color: Colors.green),
-                        ],
-                      ), // Use Todolist item
-                      trailing: Checkbox(
-                        value: Todolist.todoList[index].isDone, // Use isDone status
-                        onChanged: (bool? value) {
-                          setState(() {
-                            Todolist.todoList[index].isDone = value ?? false; // Update isDone status
-                          });
-                          _updateToDoList(); // Save updated status
-                        },
+                    return GestureDetector(
+                      onTap: () async {
+                        if (index >= 0 && index < Todolist.todoList.length) {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditList(
+                                index: index,
+                                initialText: Todolist.todoList[index].listTodo, // Pass the text of the tapped index
+                              ),
+                            ),
+                          );
+                          if (result != null && result != 'deleted') {
+                            setState(() {
+                              Todolist.todoList[index].listTodo = result.listTodo;
+                              Todolist.todoList[index].isDone = result.isDone;
+                            });
+                            _updateToDoList();
+                          } else if (result == 'deleted') {
+                            _removeToDoItem(index);
+                          }
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            child: Text('${index + 1}'),
+                          ),
+                          title: Row(
+                            children: <Widget>[
+                              Text(Todolist.todoList[index].listTodo),
+                              if (Todolist.todoList[index].isDone)
+                                const Icon(Icons.check, color: Colors.green),
+                            ],
+                          ), // Use Todolist item
+                          trailing: Checkbox(
+                            value: Todolist.todoList[index].isDone, // Use isDone status
+                            onChanged: (bool? value) {
+                              setState(() {
+                                Todolist.todoList[index].isDone = value ?? false; // Update isDone status
+                              });
+                              _updateToDoList(); // Save updated status
+                            },
+                          ),
+                        ),
                       ),
                     );
                   },
