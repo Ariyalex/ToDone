@@ -3,26 +3,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Todolist {
   String listTodo;
+  String date;
   bool isDone;
 
-  Todolist(this.listTodo, {this.isDone = false});
+  Todolist(this.listTodo, {this.isDone = false, required String date}) 
+      : date = DateTime.parse(date).toIso8601String().split('T').first;
 
   static List<Todolist> todoList = [];
 
   set title(String title) {}
 
-  static void addTodoItem(String item) {
-    todoList.add(Todolist(item));
+  static void addTodoItem(String item, String date) {
+    todoList.add(Todolist(item, date: DateTime.parse(date).toIso8601String().split('T').first));
   }
 
   Map<String, dynamic> toJson() => {
     'listTodo': listTodo,
     'isDone': isDone,
+    'date': date,
   };
 
   static Todolist fromJson(Map<String, dynamic> json) => Todolist(
-    json['listTodo'],
-    isDone: json['isDone'],
+    json['listTodo'] ?? '',
+    isDone: json['isDone'] ?? false,
+    date: (json['date'] ?? '').split('T').first,
   );
 
   static Future<void> saveTodoList() async {

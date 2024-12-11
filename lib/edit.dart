@@ -1,29 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
-import 'package:to_do_list/home_screen.dart';
 
 class EditList extends StatefulWidget {
   final int index;
   final String initialText;
+  final String initialDate; // Add initialDate parameter
 
-  const EditList({super.key, required this.index, required this.initialText});
+  const EditList({super.key, required this.index, required this.initialText, required this.initialDate});
 
   @override
   _EditListState createState() => _EditListState();
 }
 
 class _EditListState extends State<EditList> {
-  late TextEditingController controller;
+  late TextEditingController _textController;
+  late TextEditingController _dateController; // Add date controller
+  DateTime? _selectedDate; // Add selected date
 
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController(text: widget.initialText);
+    _textController = TextEditingController(text: widget.initialText);
+    _dateController = TextEditingController(text: widget.initialDate); // Initialize date controller
+    _selectedDate = DateTime.tryParse(widget.initialDate); // Initialize selected date
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _dateController.text = _selectedDate!.toIso8601String().split('T').first;
+      });
+    }
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    _textController.dispose();
+    _dateController.dispose(); // Dispose date controller
     super.dispose();
   }
 
@@ -46,26 +66,6 @@ class _EditListState extends State<EditList> {
               fontWeight: FontWeight.bold,
             ),
           ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.white),
-            onPressed: () async {
-              if (widget.index >= 0 && widget.index < Todolist.todoList.length) {
-                setState(() {
-                  Todolist.todoList.removeAt(widget.index);
-                });
-                await Todolist.saveTodoList();
-                if (context.mounted) {
-                  Navigator.pop(context, 'deleted');
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
-                }
-              }
-            },
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -73,14 +73,20 @@ class _EditListState extends State<EditList> {
           child: Column(
             children: [
               TextField(
-                controller: controller,
+                controller: _textController,
                 decoration: const InputDecoration(
                   labelText: 'Edit To Do',
                 ),
               ),
+              TextField(
+                controller: _dateController,
+                decoration: const InputDecoration(labelText: 'Date'), // Add date input field
+                readOnly: true,
+                onTap: () => _selectDate(context), // Open date picker on tap
+              ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context, Todolist(controller.text, isDone: Todolist.todoList[widget.index].isDone));
+                  Navigator.pop(context, Todolist(_textController.text, isDone: Todolist.todoList[widget.index].isDone, date: _dateController.text));
                 },
                 child: const Text('Save'),
               ),

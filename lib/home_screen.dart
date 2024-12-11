@@ -24,17 +24,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void _removeToDoItem(int index) async {
-    if (index >= 0 && index < Todolist.todoList.length) {
-      Todolist.todoList.removeAt(index);  // Hapus item
-      await Todolist.saveTodoList();      // Simpan perubahan
-      setState(() {});                    // Perbarui UI
-    }
-  }
-
   void _addToDoItem(Todolist item) async {
     setState(() {
-      Todolist.addTodoItem(item.listTodo); // Add item to Todolist
+      Todolist.addTodoItem(item.listTodo, item.date); // Add item with date to Todolist
     });
     await Todolist.saveTodoList(); // Save the updated todo list
     setState(() {}); // Ensure the UI updates immediately
@@ -45,19 +37,37 @@ class _HomeScreenState extends State<HomeScreen> {
     prefs.setStringList('todoList', Todolist.todoList.map((e) => json.encode(e.toJson())).toList());
   }
 
+  void _deleteCheckedItems() async {
+    setState(() {
+      Todolist.todoList.removeWhere((item) => item.isDone);
+    });
+    await Todolist.saveTodoList();
+    setState(() {}); // Ensure the UI updates immediately
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[800],
         title: const Text(
-            'ToDone',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          'ToDone',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
+        ),
+        actions: [
+          if (Todolist.todoList.any((item) => item.isDone)) // Check if any item is checked
+            IconButton(
+              style: ButtonStyle(
+                foregroundColor: WidgetStateProperty.all(Colors.white),
+              ),
+              icon: const Icon(Icons.delete),
+              onPressed: _deleteCheckedItems,
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -97,17 +107,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => EditList(
                                     index: index,
                                     initialText: Todolist.todoList[index].listTodo,
+                                    initialDate: Todolist.todoList[index].date, // Pass the initial date
                                   ),
                                 ),
                               );
-                              if (result != null && result != 'deleted') {
+                              if (result != null) {
                                 setState(() {
                                   Todolist.todoList[index].listTodo = result.listTodo;
+                                  Todolist.todoList[index].date = result.date; // Update the date
                                   Todolist.todoList[index].isDone = result.isDone;
                                 });
                                 await Todolist.saveTodoList();
-                              } else if (result == 'deleted') {
-                                _removeToDoItem(index);  // Panggil fungsi penghapusan
                               }
                             }
                           },
@@ -126,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   if (Todolist.todoList[index].isDone)
                                     const Icon(Icons.check, color: Colors.green),
                                 ],
-                              ), // Use Todolist item
+                              ),
+                              subtitle: Text(Todolist.todoList[index].date), // Display the date
                               trailing: Checkbox(
                                 value: Todolist.todoList[index].isDone, // Use isDone status
                                 onChanged: (bool? value) {
@@ -153,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddList()),
+            MaterialPageRoute(builder: (context) => const AddList()),
           );
           if (result != null) {
             _addToDoItem(result);
