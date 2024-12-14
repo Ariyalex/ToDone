@@ -4,6 +4,7 @@ import 'package:to_do_list/data/list.dart'; // Import the Todolist class
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import 'dart:convert'; // Import json
 import 'package:to_do_list/edit.dart'; // Import the EditList class
+import 'package:to_do_list/main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,11 +50,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[800],
+        backgroundColor: const Color(0xFFA294F9),
         title: const Text(
           'ToDone',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFFF5EFFF),
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -103,8 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             if (index >= 0 && index < Todolist.todoList.length) {
                               final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditList(
+                                SlidePageRoute(
+                                  page: EditList(
                                     index: index,
                                     initialText: Todolist.todoList[index].listTodo,
                                     initialDate: Todolist.todoList[index].date, // Pass the initial date
@@ -132,9 +133,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               title: Row(
                                 children: <Widget>[
-                                  Text(Todolist.todoList[index].listTodo),
-                                  if (Todolist.todoList[index].isDone)
-                                    const Icon(Icons.check, color: Colors.green),
+                                  Flexible(
+                                    child: Text(
+                                      Todolist.todoList[index].listTodo,
+                                      style: TextStyle(
+                                        decoration: Todolist.todoList[index].isDone ? TextDecoration.lineThrough : TextDecoration.none,
+                                        decorationColor: Todolist.todoList[index].isDone ? Colors.red : Colors.transparent,
+                                        decorationThickness: Todolist.todoList[index].isDone ? 2.0 : 1.0,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                               subtitle: Text(Todolist.todoList[index].date), // Display the date
@@ -164,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddList()),
+            SlidePageRoute(page: const AddList()), // Use page instead of builder
           );
           if (result != null) {
             _addToDoItem(result);

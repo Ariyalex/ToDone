@@ -51,7 +51,7 @@ class _EditListState extends State<EditList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[800],
+        backgroundColor: const Color(0xFFA294F9),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
@@ -61,7 +61,7 @@ class _EditListState extends State<EditList> {
         title: const Text(
             'ToDone',
             style: TextStyle(
-              color: Colors.white,
+              color: Color(0xFFF5EFFF),
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -84,11 +84,22 @@ class _EditListState extends State<EditList> {
                 readOnly: true,
                 onTap: () => _selectDate(context), // Open date picker on tap
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, Todolist(_textController.text, isDone: Todolist.todoList[widget.index].isDone, date: _dateController.text));
-                },
-                child: const Text('Save'),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FilledButton.tonal(
+                    onPressed: () {
+                      Navigator.pop(context, Todolist(_textController.text, isDone: Todolist.todoList[widget.index].isDone, date: _dateController.text));
+                    },
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                      ),
+                  ),
+                ],
               ),
             ],
           ),

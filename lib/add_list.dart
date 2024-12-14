@@ -48,7 +48,7 @@ class _AddListState extends State<AddList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[800],
+        backgroundColor: const Color(0xFFA294F9),
         leading: 
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -59,7 +59,7 @@ class _AddListState extends State<AddList> {
         title: const Text(
             'ToDone',
             style: TextStyle(
-              color: Colors.white,
+              color: Color(0xFFF5EFFF),
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -97,15 +97,20 @@ class _AddListState extends State<AddList> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: ElevatedButton(
-              onPressed: _isButtonDisabled ? null : () {
-                final newItem = Todolist(_controller.text, date: _selectedDate.toString());
-                Navigator.pop(context, newItem); // Pass new item back to HomeScreen
-              },
-              child: const Text('Simpan'),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: ElevatedButton(
+                  onPressed: _isButtonDisabled ? null : () {
+                    final newItem = Todolist(_controller.text, date: _selectedDate.toString());
+                    Navigator.pop(context, newItem); // Pass new item back to HomeScreen
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
