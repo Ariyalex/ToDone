@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPre
 import 'dart:convert'; // Import json
 import 'package:to_do_list/edit.dart'; // Import the EditList class
 import 'package:to_do_list/main.dart';
+import 'package:to_do_list/jadwal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add GlobalKey
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey, // Assign the GlobalKey to Scaffold
       appBar: AppBar(
         backgroundColor: const Color(0xFFA294F9),
         title: const Text(
@@ -69,6 +73,64 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: _deleteCheckedItems,
             ),
         ],
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer(); // Use GlobalKey to open the drawer
+          },
+        ),
+      ),
+      drawer: Drawer(
+        width: 250, // Set the width of the Drawer
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const SizedBox(
+              height: 155,
+              child: DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Color(0xFFA294F9),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ToDone',
+                      style: TextStyle(
+                        color: Color(0xFFF5EFFF),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Buat To Do List dan Jadwalmu',
+                      style: TextStyle(
+                        color: Color(0xFFF5EFFF),
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ListTile(
+              title: const Text('To Do List'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text('Jadwal'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  SlidePageRoute(page: const JadwalPage()), // Use page instead of builder
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
