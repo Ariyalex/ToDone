@@ -5,16 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPre
 import 'dart:convert'; // Import json
 import 'package:to_do_list/edit.dart'; // Import the EditList class
 import 'package:to_do_list/main.dart';
-import 'package:to_do_list/jadwal.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ToDoList extends StatefulWidget { // Change class name
+  const ToDoList({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ToDoList> createState() => _ToDoListState(); // Update state class name
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ToDoListState extends State<ToDoList> { // Change state class name
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add GlobalKey
 
   @override
@@ -117,16 +116,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               title: const Text('To Do List'),
               onTap: () {
-                Navigator.pop(context);
+                null;
               },
             ),
             ListTile(
               title: const Text('Jadwal'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  SlidePageRoute(page: const JadwalPage()), // Use page instead of builder
-                );
+                null;
               },
             ),
           ],

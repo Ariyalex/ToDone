@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:to_do_list/home_screen.dart';
+import 'package:to_do_list/home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Helvetica',
         primarySwatch: Colors.deepPurple,
       ),
-      home: const HomeScreen(),
+      home: const HomePage(), // Update to use ToDoList class
     );
   }
 }

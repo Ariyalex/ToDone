@@ -8,13 +8,14 @@ class JadwalPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 97, 190, 100), // Adjust this to match home_screen.dart
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: const Text(
+          'Jadwal',
+          style: TextStyle(
+            color: Color(0xFFF5EFFF),
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        title: const Text('Jadwal', style: TextStyle(color: Colors.white),),
         
       ),
       body: SingleChildScrollView(
