@@ -29,7 +29,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
 
   void _addToDoItem(Todolist item) async {
     setState(() {
-      Todolist.addTodoItem(item.listTodo, item.date); // Add item with date to Todolist
+      Todolist.addTodoItem(item.listTodo, item.date, time: item.time); // Add item with date and time to Todolist
     });
     await Todolist.saveTodoList(); // Save the updated todo list
     setState(() {}); // Ensure the UI updates immediately
@@ -167,6 +167,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                                     index: index,
                                     initialText: Todolist.todoList[index].listTodo,
                                     initialDate: Todolist.todoList[index].date, // Pass the initial date
+                                    initialTime: Todolist.todoList[index].time, // Pass the initial time
                                   ),
                                 ),
                               );
@@ -174,6 +175,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                                 setState(() {
                                   Todolist.todoList[index].listTodo = result.listTodo;
                                   Todolist.todoList[index].date = result.date; // Update the date
+                                  Todolist.todoList[index].time = result.time; // Update the time
                                   Todolist.todoList[index].isDone = result.isDone;
                                 });
                                 await Todolist.saveTodoList();
@@ -203,7 +205,13 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                                   ),
                                 ],
                               ),
-                              subtitle: Text(Todolist.todoList[index].date), // Display the date
+                              subtitle: Row(
+                                children: [
+                                  Text(Todolist.todoList[index].date),
+                                  const SizedBox(width: 10),
+                                  Text(Todolist.todoList[index].time ?? ''), // Ensure time is displayed
+                                ],
+                              ), // Display the date
                               trailing: Checkbox(
                                 value: Todolist.todoList[index].isDone, // Use isDone status
                                 onChanged: (bool? value) {

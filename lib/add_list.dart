@@ -11,6 +11,7 @@ class AddList extends StatefulWidget {
 
 class _AddListState extends State<AddList> {
   final TextEditingController _controller = TextEditingController();
+  TimeOfDay? _selectedTime; // Set default to null
   DateTime _selectedDate = DateTime.now();
   bool _isButtonDisabled = true;
 
@@ -40,9 +41,23 @@ class _AddListState extends State<AddList> {
     }
   }
 
+  Future<void> _pickTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
   String getFormattedDate(DateTime date) {
     return "${date.day}-${date.month}-${date.year}";
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +112,23 @@ class _AddListState extends State<AddList> {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                FilledButton(
+                  onPressed: () => _pickTime(),
+                   child: const Text('Pilih Waktu'),
+                ),
+                const SizedBox(width: 20),
+                Text(
+                  _selectedTime == null ? 'Waktu tidak dipilih' : _selectedTime!.format(context),
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ],
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -104,7 +136,11 @@ class _AddListState extends State<AddList> {
                 padding: const EdgeInsets.all(20),
                 child: ElevatedButton(
                   onPressed: _isButtonDisabled ? null : () {
-                    final newItem = Todolist(_controller.text, date: _selectedDate.toString());
+                    final newItem = Todolist(
+                      _controller.text, 
+                      date: _selectedDate.toString(),
+                      time: _selectedTime?.format(context), // Save selected time
+                    );
                     Navigator.pop(context, newItem); // Pass new item back to HomeScreen
                   },
                   child: const Text('Simpan'),
