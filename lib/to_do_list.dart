@@ -85,7 +85,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
           padding: EdgeInsets.zero,
           children: <Widget>[
             const SizedBox(
-              height: 155,
+              height: 165,
               child: DrawerHeader(
                 decoration: BoxDecoration(
                   color: Color(0xFFA294F9),
