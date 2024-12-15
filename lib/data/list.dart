@@ -28,7 +28,7 @@ class Todolist {
   static Todolist fromJson(Map<String, dynamic> json) => Todolist(
     json['listTodo'] ?? '',
     isDone: json['isDone'] ?? false,
-    date: (json['date'] ?? '').split('T').first,
+  date: (json['date'] ?? '').split('T').first,
     time: json['time'],
   );
 
