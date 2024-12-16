@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPre
 import 'dart:convert'; // Import json
 import 'package:to_do_list/edit.dart'; // Import the EditList class
 import 'package:to_do_list/main.dart';
+import 'package:timezone/data/latest.dart' as tz; 
 
 class ToDoList extends StatefulWidget { // Change class name
   const ToDoList({super.key});
@@ -16,9 +17,13 @@ class ToDoList extends StatefulWidget { // Change class name
 class _ToDoListState extends State<ToDoList> { // Change state class name
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add GlobalKey
 
+  DateTime selectedDate = DateTime.now();
+  TimeOfDay selecedTime = TimeOfDay.now();
+
   @override
   void initState() {
     super.initState();
+    tz.initializeTimeZones(); // Initialize time zones
     _loadToDoList();
   }
 
@@ -32,6 +37,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
       Todolist.addTodoItem(item.listTodo, date: item.date, time: item.time); // Add item with date and time to Todolist
     });
     await Todolist.saveTodoList(); // Save the updated todo list
+
     setState(() {}); // Ensure the UI updates immediately
   }
 
@@ -65,9 +71,6 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
         actions: [
           if (Todolist.todoList.any((item) => item.isDone)) // Check if any item is checked
             IconButton(
-              style: ButtonStyle(
-                foregroundColor: WidgetStateProperty.all(Colors.white),
-              ),
               icon: const Icon(Icons.delete),
               onPressed: _deleteCheckedItems,
             ),

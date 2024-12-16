@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 class AddList extends StatefulWidget {
-
   const AddList ({super.key});
 
   @override
@@ -14,12 +16,49 @@ class _AddListState extends State<AddList> {
   TimeOfDay? _selectedTime;
   DateTime? _selectedDate; // Allow selectedDate to be null
   bool _isButtonDisabled = true;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
+    tz.initializeTimeZones();
     super.initState();
     _controller.addListener(_checkIfEmpty);
+    _initializeNotifications();
   }
+
+
+  void _initializeNotifications() async {
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  const InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+}
+
+  Future<void> _scheduleNotification(String title, DateTime dateTime) async {
+  const androidDetails = AndroidNotificationDetails(
+    'your_channel_id',
+    'Your Channel Name',
+    channelDescription: 'Your channel description',
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+
+  const notificationDetails = NotificationDetails(android: androidDetails);
+
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    0,
+    'Pengingat ToDo',
+    title,
+    tz.TZDateTime.from(dateTime, tz.local),
+    notificationDetails,
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.wallClockTime,
+    matchDateTimeComponents: DateTimeComponents.dateAndTime, androidScheduleMode: AndroidScheduleMode.exact,
+  );
+}
 
   void _checkIfEmpty() {
     setState(() {
@@ -135,6 +174,17 @@ class _AddListState extends State<AddList> {
                 padding: const EdgeInsets.all(20),
                 child: ElevatedButton(
                   onPressed: _isButtonDisabled ? null : () {
+                    if (_selectedDate != null && _selectedTime != null) {
+                      final scheduledDate = DateTime(
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day,
+                        _selectedTime!.hour,
+                        _selectedTime!.minute,
+                      );
+                      _scheduleNotification(_controller.text, scheduledDate);
+                    }
+
                     final newItem = Todolist(
                       _controller.text, 
                       date: _selectedDate?.toIso8601String().split('T').first,
@@ -152,3 +202,4 @@ class _AddListState extends State<AddList> {
     );
   }
 }
+

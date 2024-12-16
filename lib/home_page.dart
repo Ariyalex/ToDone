@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/to_do_list.dart';
 import 'package:to_do_list/jadwal.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'To Do List',
+      theme: ThemeData(
+        primarySwatch: Colors.deepPurple,
+      ),
+      home: const HomePage(),
+    );
+  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,8 +32,49 @@ class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController(
     initialPage: 0,
   );
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+    FlutterLocalNotificationsPlugin();
+
+  Future<void> _requestPermissions() async {
+    // Request notification permissions
+    final status = await Permission.notification.request();
+    if (status.isGranted) {
+      final NotificationAppLaunchDetails? notificationAppLaunchDetails =
+          await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+      if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
+        // Handle notification launch
+      }
+      final bool? granted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+      if (granted == null || !granted) {
+        // Handle permission not granted
+      }
+    } else {
+      // Handle permission not granted
+    }
+  }
+
+  Future<void> _requestScheduleExactAlarmPermission() async {
+    final status = await Permission.scheduleExactAlarm.request();
+    if (!status.isGranted) {
+      // Handle permission not granted
+    }
+  }
 
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestPermissions();
+    _requestScheduleExactAlarmPermission();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
