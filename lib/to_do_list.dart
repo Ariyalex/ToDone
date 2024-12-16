@@ -29,7 +29,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
 
   void _addToDoItem(Todolist item) async {
     setState(() {
-      Todolist.addTodoItem(item.listTodo, item.date, time: item.time); // Add item with date and time to Todolist
+      Todolist.addTodoItem(item.listTodo, date: item.date, time: item.time); // Add item with date and time to Todolist
     });
     await Todolist.saveTodoList(); // Save the updated todo list
     setState(() {}); // Ensure the UI updates immediately
@@ -207,7 +207,7 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                               ),
                               subtitle: Row(
                                 children: [
-                                  Text(Todolist.todoList[index].date),
+                                  Text(Todolist.todoList[index].date ?? 'Tanggal tidak dipilih'), // Display default text if date is null
                                   const SizedBox(width: 10),
                                   Text(Todolist.todoList[index].time ?? ''), // Ensure time is displayed
                                 ],

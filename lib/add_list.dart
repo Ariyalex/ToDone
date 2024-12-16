@@ -11,8 +11,8 @@ class AddList extends StatefulWidget {
 
 class _AddListState extends State<AddList> {
   final TextEditingController _controller = TextEditingController();
-  TimeOfDay? _selectedTime; // Set default to null
-  DateTime _selectedDate = DateTime.now();
+  TimeOfDay? _selectedTime;
+  DateTime? _selectedDate; // Allow selectedDate to be null
   bool _isButtonDisabled = true;
 
   @override
@@ -30,7 +30,7 @@ class _AddListState extends State<AddList> {
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate:  _selectedDate,
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2050),
     );
@@ -53,11 +53,10 @@ class _AddListState extends State<AddList> {
     }
   }
 
-  String getFormattedDate(DateTime date) {
+  String getFormattedDate(DateTime? date) {
+    if (date == null) return 'Tanggal belum dipilih';
     return "${date.day}-${date.month}-${date.year}";
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -138,8 +137,8 @@ class _AddListState extends State<AddList> {
                   onPressed: _isButtonDisabled ? null : () {
                     final newItem = Todolist(
                       _controller.text, 
-                      date: _selectedDate.toString(),
-                      time: _selectedTime?.format(context), // Save selected time
+                      date: _selectedDate?.toIso8601String().split('T').first,
+                      time: _selectedTime?.format(context),
                     );
                     Navigator.pop(context, newItem); // Pass new item back to HomeScreen
                   },

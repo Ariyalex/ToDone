@@ -4,10 +4,10 @@ import 'package:to_do_list/data/list.dart';
 class EditList extends StatefulWidget {
   final int index;
   final String initialText;
-  final String initialDate; // Add initialDate parameter
-  final String? initialTime; // Add initialTime parameter
+  final String? initialDate; // Allow initialDate to be null
+  final String? initialTime;
 
-  const EditList({super.key, required this.index, required this.initialText, required this.initialDate, this.initialTime});
+  const EditList({super.key, required this.index, required this.initialText, this.initialDate, this.initialTime});
 
   @override
   _EditListState createState() => _EditListState();
@@ -15,18 +15,18 @@ class EditList extends StatefulWidget {
 
 class _EditListState extends State<EditList> {
   late TextEditingController _textController;
-  late TextEditingController _dateController; // Add date controller
-  late TextEditingController _timeController; // Add time controller
-  DateTime? _selectedDate; // Add selected date
-  TimeOfDay? _selectedTime; // Add selected time
+  late TextEditingController _dateController;
+  late TextEditingController _timeController;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.initialText);
-    _dateController = TextEditingController(text: widget.initialDate); // Initialize date controller
+    _dateController = TextEditingController(text: widget.initialDate ?? ''); // Initialize date controller
     _timeController = TextEditingController(text: widget.initialTime ?? ''); // Initialize time controller
-    _selectedDate = DateTime.tryParse(widget.initialDate); // Initialize selected date
+    _selectedDate = widget.initialDate != null ? DateTime.tryParse(widget.initialDate!) : null; // Initialize selected date
     _selectedTime = widget.initialTime != null ? TimeOfDay(
       hour: int.parse(widget.initialTime!.split(':')[0]),
       minute: int.parse(widget.initialTime!.split(':')[1].split(' ')[0]),
@@ -64,8 +64,8 @@ class _EditListState extends State<EditList> {
   @override
   void dispose() {
     _textController.dispose();
-    _dateController.dispose(); // Dispose date controller
-    _timeController.dispose(); // Dispose time controller
+    _dateController.dispose();
+    _timeController.dispose();
     super.dispose();
   }
 
@@ -102,15 +102,15 @@ class _EditListState extends State<EditList> {
               ),
               TextField(
                 controller: _dateController,
-                decoration: const InputDecoration(labelText: 'Date'), // Add date input field
+                decoration: const InputDecoration(labelText: 'Date'),
                 readOnly: true,
-                onTap: () => _selectDate(context), // Open date picker on tap
+                onTap: () => _selectDate(context),
               ),
               TextField(
                 controller: _timeController,
-                decoration: const InputDecoration(labelText: 'Time'), // Add time input field
+                decoration: const InputDecoration(labelText: 'Time'),
                 readOnly: true,
-                onTap: () => _selectTime(context), // Open time picker on tap
+                onTap: () => _selectTime(context),
               ),
               const SizedBox(height: 20),
               Row(
@@ -121,8 +121,8 @@ class _EditListState extends State<EditList> {
                       Navigator.pop(context, Todolist(
                         _textController.text,
                         isDone: Todolist.todoList[widget.index].isDone,
-                        date: _dateController.text,
-                        time: _timeController.text,
+                        date: _dateController.text.isEmpty ? null : _dateController.text,
+                        time: _timeController.text.isEmpty ? null : _timeController.text,
                       ));
                     },
                     child: const Text(
