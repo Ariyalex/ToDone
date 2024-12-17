@@ -1,35 +1,25 @@
-
 import 'package:flutter/material.dart';
 import 'package:to_do_list/home_page.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  debugPrint('Initializing zona waktu');
+  await AndroidAlarmManager.initialize();
 
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-
-  debugPrint("zona waktu diatur ke ${tz.local}");
-
-  DateTime now = DateTime.now();
-  tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10, 0);
-  debugPrint("waktu lokal sistem: $now");
-  debugPrint("waktu lokal yang dijadwalkan: $scheduledDate");
 
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('app_icon');
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  debugPrint("Notifikasi diinisialisasi");
   runApp(const MyApp());
 }
 
