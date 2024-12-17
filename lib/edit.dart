@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
+import 'dart:async';
 
 class EditList extends StatefulWidget {
   final int index;
@@ -19,6 +23,7 @@ class _EditListState extends State<EditList> {
   late TextEditingController _timeController;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -31,6 +36,65 @@ class _EditListState extends State<EditList> {
       hour: int.parse(widget.initialTime!.split(':')[0]),
       minute: int.parse(widget.initialTime!.split(':')[1].split(' ')[0]),
     ) : null; // Initialize selected time
+    tz.initializeTimeZones();
+    _initializeNotifications();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    _startNotificationChecker();
+  }
+
+  void _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> _scheduleNotification(String title, DateTime dateTime) async {
+    const androidDetails = AndroidNotificationDetails(
+      'your_channel_id',
+      'Your Channel Name',
+      channelDescription: 'Your channel description',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Pengingat ToDo',
+      title,
+      notificationDetails,
+    );
+
+    debugPrint('Notifikasi dijadwalkan pada $dateTime dengan judul: $title');
+  }
+
+  void _startNotificationChecker() {
+    Timer.periodic(const Duration(minutes: 1), (timer) {
+      final now = DateTime.now();
+      if (_selectedDate != null && _selectedTime != null) {
+        final scheduledDate = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
+        if (now.year == scheduledDate.year &&
+            now.month == scheduledDate.month &&
+            now.day == scheduledDate.day &&
+            now.hour == scheduledDate.hour &&
+            now.minute == scheduledDate.minute) {
+          _scheduleNotification(_textController.text, scheduledDate);
+        }
+      }
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {

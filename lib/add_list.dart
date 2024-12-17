@@ -3,6 +3,7 @@ import 'package:to_do_list/data/list.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import 'dart:async';
 
 class AddList extends StatefulWidget {
   const AddList ({super.key});
@@ -24,8 +25,9 @@ class _AddListState extends State<AddList> {
     super.initState();
     _controller.addListener(_checkIfEmpty);
     _initializeNotifications();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    _startNotificationChecker();
   }
-
 
   void _initializeNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
@@ -38,27 +40,49 @@ class _AddListState extends State<AddList> {
 }
 
   Future<void> _scheduleNotification(String title, DateTime dateTime) async {
-  const androidDetails = AndroidNotificationDetails(
-    'your_channel_id',
-    'Your Channel Name',
-    channelDescription: 'Your channel description',
-    importance: Importance.max,
-    priority: Priority.high,
-  );
+    const androidDetails = AndroidNotificationDetails(
+      'your_channel_id',
+      'Your Channel Name',
+      channelDescription: 'Your channel description',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
 
-  const notificationDetails = NotificationDetails(android: androidDetails);
+    const notificationDetails = NotificationDetails(android: androidDetails);
 
-  await flutterLocalNotificationsPlugin.zonedSchedule(
-    0,
-    'Pengingat ToDo',
-    title,
-    tz.TZDateTime.from(dateTime, tz.local),
-    notificationDetails,
-    uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.wallClockTime,
-    matchDateTimeComponents: DateTimeComponents.dateAndTime, androidScheduleMode: AndroidScheduleMode.exact,
-  );
-}
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Pengingat ToDo',
+      title,
+      notificationDetails,
+    );
+
+    debugPrint('Notifikasi dijadwalkan pada $dateTime dengan judul: $title');
+  }
+
+  void _startNotificationChecker() {
+    Timer.periodic(const Duration(minutes: 1), (timer) {
+      final now = DateTime.now();
+      if (_selectedDate != null && _selectedTime != null) {
+        final scheduledDate = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
+        if (now.year == scheduledDate.year &&
+            now.month == scheduledDate.month &&
+            now.day == scheduledDate.day &&
+            now.hour == scheduledDate.hour &&
+            now.minute == scheduledDate.minute) {
+          _scheduleNotification(_controller.text, scheduledDate);
+        }
+      }
+    });
+  }
 
   void _checkIfEmpty() {
     setState(() {
@@ -174,17 +198,6 @@ class _AddListState extends State<AddList> {
                 padding: const EdgeInsets.all(20),
                 child: ElevatedButton(
                   onPressed: _isButtonDisabled ? null : () {
-                    if (_selectedDate != null && _selectedTime != null) {
-                      final scheduledDate = DateTime(
-                        _selectedDate!.year,
-                        _selectedDate!.month,
-                        _selectedDate!.day,
-                        _selectedTime!.hour,
-                        _selectedTime!.minute,
-                      );
-                      _scheduleNotification(_controller.text, scheduledDate);
-                    }
-
                     final newItem = Todolist(
                       _controller.text, 
                       date: _selectedDate?.toIso8601String().split('T').first,
