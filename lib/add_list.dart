@@ -4,6 +4,29 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'dart:async';
+import 'package:permission_handler/permission_handler.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'To Do List',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const AddList(),
+    );
+  }
+}
 
 class AddList extends StatefulWidget {
   const AddList ({super.key});
@@ -17,108 +40,64 @@ class _AddListState extends State<AddList> {
   TimeOfDay? _selectedTime;
   DateTime? _selectedDate; // Allow selectedDate to be null
   bool _isButtonDisabled = true;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
-    tz.initializeTimeZones();
     super.initState();
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
     _controller.addListener(_checkIfEmpty);
     _initializeNotifications();
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-    _startNotificationChecker();
+    _requestScheduleExactAlarmPermission();
   }
 
-  void _initializeNotifications() async {
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  const InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
 
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-}
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings, onDidReceiveBackgroundNotificationResponse: (response) {debugPrint('Notification clicked');});
+  }
 
   Future<void> _scheduleNotification(String title, DateTime dateTime) async {
-    const androidDetails = AndroidNotificationDetails(
-      'your_channel_id',
-      'Your Channel Name',
-      channelDescription: 'Your channel description',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    const notificationDetails = NotificationDetails(android: androidDetails);
-
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Pengingat ToDo',
-      title,
-      notificationDetails,
-    );
-
-    debugPrint('Notifikasi dijadwalkan pada $dateTime dengan judul: $title');
+    try {
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        0,
+        'Pengingat ToDo',
+        title,
+        tz.TZDateTime.from(dateTime, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'your_channel_id', 'Your Channel Name',
+            channelDescription: 'Your channel description',
+            importance: Importance.max,
+            priority: Priority.high,
+            ticker: 'ticker'
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+      );
+      debugPrint('Notifikasi dijadwalkan pada $dateTime dengan judul: $title');
+    } catch (e) {
+      debugPrint('Gagal menjadwalkan notifikasi: $e');
+    }
   }
 
-  void _startNotificationChecker() {
-    Timer.periodic(const Duration(minutes: 1), (timer) {
-      final now = DateTime.now();
-      if (_selectedDate != null && _selectedTime != null) {
-        final scheduledDate = DateTime(
-          _selectedDate!.year,
-          _selectedDate!.month,
-          _selectedDate!.day,
-          _selectedTime!.hour,
-          _selectedTime!.minute,
-        );
-        if (now.year == scheduledDate.year &&
-            now.month == scheduledDate.month &&
-            now.day == scheduledDate.day &&
-            now.hour == scheduledDate.hour &&
-            now.minute == scheduledDate.minute) {
-          _scheduleNotification(_controller.text, scheduledDate);
-        }
-      }
-    });
+  Future<void> _requestScheduleExactAlarmPermission() async {
+    final status = await Permission.scheduleExactAlarm.request();
+    if (!status.isGranted) {
+      // Handle permission not granted
+      debugPrint('Exact alarm permission not granted');
+    }
   }
 
   void _checkIfEmpty() {
     setState(() {
       _isButtonDisabled = _controller.text.isEmpty;
     });
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2050),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
-    );
-    if (picked != null && picked != _selectedTime) {
-      setState(() {
-        _selectedTime = picked;
-      });
-    }
-  }
-
-  String getFormattedDate(DateTime? date) {
-    if (date == null) return 'Tanggal belum dipilih';
-    return "${date.day}-${date.month}-${date.year}";
   }
 
   @override
@@ -197,12 +176,27 @@ class _AddListState extends State<AddList> {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: ElevatedButton(
+                  
                   onPressed: _isButtonDisabled ? null : () {
                     final newItem = Todolist(
                       _controller.text, 
                       date: _selectedDate?.toIso8601String().split('T').first,
                       time: _selectedTime?.format(context),
                     );
+                    if (_selectedDate != null && _selectedTime != null) {
+                      final scheduledDate = DateTime(
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day,
+                        _selectedTime!.hour,
+                        _selectedTime!.minute,
+                      );
+                      if (scheduledDate.isAfter(DateTime.now())) {
+                        _scheduleNotification(_controller.text, scheduledDate);
+                      } else {
+                        debugPrint('Scheduled date must be in the future');
+                      }
+                    }
                     Navigator.pop(context, newItem); // Pass new item back to HomeScreen
                   },
                   child: const Text('Simpan'),
@@ -214,5 +208,57 @@ class _AddListState extends State<AddList> {
       ),
     );
   }
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2050),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  String getFormattedDate(DateTime? date) {
+    if (date == null) return 'Tanggal belum dipilih';
+    return "${date.day}-${date.month}-${date.year}";
+  }
+}
+
+@pragma('vm:entry-point')
+Future<void> _alarmCallback() async {
+  const androidDetails = AndroidNotificationDetails(
+    'your_channel_id',
+    'Your Channel Name',
+    channelDescription: 'Your channel description',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    enableVibration: true,
+  );
+
+  const notificationDetails = NotificationDetails(android: androidDetails);
+
+  await flutterLocalNotificationsPlugin.show(
+    0,
+    'Pengingat ToDo',
+    'Waktunya untuk melakukan ToDo',
+    notificationDetails,
+  );
 }
 

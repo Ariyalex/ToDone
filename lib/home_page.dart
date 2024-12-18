@@ -3,11 +3,28 @@ import 'package:to_do_list/to_do_list.dart';
 import 'package:to_do_list/jadwal.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:to_do_list/main.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> onDidReceiveBackgroundNotificationResponse(NotificationResponse notificationResponse) async {
+  final String? payload = notificationResponse.payload;
+  if (payload != null) {
+    debugPrint('notification payload: $payload');
+  }
+  // Ensure the context is available when this function is called
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    Navigator.push(
+      navigatorKey.currentContext!,
+      SlidePageRoute(page: const HomePage()),
+    );
+  });
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +33,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
+      navigatorKey: navigatorKey,
       home: const HomePage(),
     );
   }
@@ -60,20 +78,26 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _requestScheduleExactAlarmPermission() async {
-    final status = await Permission.scheduleExactAlarm.request();
-    if (!status.isGranted) {
-      // Handle permission not granted
-    }
-  }
-
   int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onDidReceiveBackgroundNotificationResponse: onDidReceiveBackgroundNotificationResponse);
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+
     _requestPermissions();
-    _requestScheduleExactAlarmPermission();
   }
 
   void _onItemTapped(int index) {

@@ -34,12 +34,11 @@ class _EditListState extends State<EditList> {
     _selectedDate = widget.initialDate != null ? DateTime.tryParse(widget.initialDate!) : null; // Initialize selected date
     _selectedTime = widget.initialTime != null ? TimeOfDay(
       hour: int.parse(widget.initialTime!.split(':')[0]),
-      minute: int.parse(widget.initialTime!.split(':')[1].split(' ')[0]),
+      minute: int.parse(widget.initialTime!.split(' ')[0].split(':')[1]),
     ) : null; // Initialize selected time
     tz.initializeTimeZones();
     _initializeNotifications();
     tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-    _startNotificationChecker();
   }
 
   void _initializeNotifications() async {
@@ -53,48 +52,25 @@ class _EditListState extends State<EditList> {
   }
 
   Future<void> _scheduleNotification(String title, DateTime dateTime) async {
-    const androidDetails = AndroidNotificationDetails(
-      'your_channel_id',
-      'Your Channel Name',
-      channelDescription: 'Your channel description',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    const notificationDetails = NotificationDetails(android: androidDetails);
-
-    await flutterLocalNotificationsPlugin.show(
+    await flutterLocalNotificationsPlugin.zonedSchedule(
       0,
       'Pengingat ToDo',
       title,
-      notificationDetails,
+      tz.TZDateTime.from(dateTime, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'your_channel_id', 'Your Channel Name',
+          channelDescription: 'Your channel description',
+          importance: Importance.max,
+          priority: Priority.high,
+          ticker: 'ticker'
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
     );
 
     debugPrint('Notifikasi dijadwalkan pada $dateTime dengan judul: $title');
-  }
-
-  void _startNotificationChecker() {
-    Timer.periodic(const Duration(minutes: 1), (timer) {
-      final now = DateTime.now();
-      if (_selectedDate != null && _selectedTime != null) {
-        final scheduledDate = DateTime(
-          _selectedDate!.year,
-          _selectedDate!.month,
-          _selectedDate!.day,
-          _selectedTime!.hour,
-          _selectedTime!.minute,
-        );
-        if (now.year == scheduledDate.year &&
-            now.month == scheduledDate.month &&
-            now.day == scheduledDate.day &&
-            now.hour == scheduledDate.hour &&
-            now.minute == scheduledDate.minute) {
-          _scheduleNotification(_textController.text, scheduledDate);
-        }
-      }
-    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -182,12 +158,23 @@ class _EditListState extends State<EditList> {
                 children: [
                   FilledButton.tonal(
                     onPressed: () {
-                      Navigator.pop(context, Todolist(
+                      final updatedItem = Todolist(
                         _textController.text,
                         isDone: Todolist.todoList[widget.index].isDone,
                         date: _dateController.text.isEmpty ? null : _dateController.text,
                         time: _timeController.text.isEmpty ? null : _timeController.text,
-                      ));
+                      );
+                      if (_selectedDate != null && _selectedTime != null) {
+                        final scheduledDate = DateTime(
+                          _selectedDate!.year,
+                          _selectedDate!.month,
+                          _selectedDate!.day,
+                          _selectedTime!.hour,
+                          _selectedTime!.minute,
+                        );
+                        _scheduleNotification(_textController.text, scheduledDate);
+                      }
+                      Navigator.pop(context, updatedItem);
                     },
                     child: const Text(
                       'Save',
