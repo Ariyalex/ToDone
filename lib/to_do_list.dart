@@ -4,7 +4,7 @@ import 'package:to_do_list/data/list.dart'; // Import the Todolist class
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import 'dart:convert'; // Import json
 import 'package:to_do_list/edit.dart'; // Import the EditList class
-import 'package:to_do_list/main.dart';
+import 'package:to_do_list/function.dart';
 import 'package:timezone/data/latest.dart' as tz; 
 
 class ToDoList extends StatefulWidget { // Change class name

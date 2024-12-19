@@ -14,10 +14,10 @@ class EditList extends StatefulWidget {
   const EditList({super.key, required this.index, required this.initialText, this.initialDate, this.initialTime});
 
   @override
-  _EditListState createState() => _EditListState();
+  EditListState createState() => EditListState();
 }
 
-class _EditListState extends State<EditList> {
+class EditListState extends State<EditList> {
   late TextEditingController _textController;
   late TextEditingController _dateController;
   late TextEditingController _timeController;

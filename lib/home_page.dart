@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:to_do_list/to_do_list.dart';
 import 'package:to_do_list/jadwal.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:to_do_list/main.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+import 'package:to_do_list/function.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -23,22 +20,6 @@ Future<void> onDidReceiveBackgroundNotificationResponse(NotificationResponse not
   });
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'To Do List',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-      ),
-      navigatorKey: navigatorKey,
-      home: const HomePage(),
-    );
-  }
-}
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -53,51 +34,11 @@ class _HomePageState extends State<HomePage> {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
     FlutterLocalNotificationsPlugin();
 
-  Future<void> _requestPermissions() async {
-    // Request notification permissions
-    final status = await Permission.notification.request();
-    if (status.isGranted) {
-      final NotificationAppLaunchDetails? notificationAppLaunchDetails =
-          await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-      if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-        // Handle notification launch
-      }
-      final bool? granted = await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-      if (granted == null || !granted) {
-        // Handle permission not granted
-      }
-    } else {
-      // Handle permission not granted
-    }
-  }
-
   int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _initializeNotifications();
-  }
-
-  Future<void> _initializeNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-      onDidReceiveBackgroundNotificationResponse: onDidReceiveBackgroundNotificationResponse);
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-
-    _requestPermissions();
   }
 
   void _onItemTapped(int index) {

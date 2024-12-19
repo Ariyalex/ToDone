@@ -41,6 +41,9 @@ dependencies:
   permission_handler: ^11.3.1
   timezone: ^0.10.0
   flutter_datetime_picker: ^1.5.1
+  flutter_timezone: ^4.0.0
+  rxdart: ^0.28.0
+  logger: ^2.5.0
 
 dev_dependencies:
   flutter_test:
