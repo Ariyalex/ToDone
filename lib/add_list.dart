@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
-import 'package:to_do_list/function.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class AddList extends StatefulWidget {
   const AddList ({super.key});
@@ -14,26 +16,40 @@ class _AddListState extends State<AddList> {
   TimeOfDay? _selectedTime;
   DateTime? _selectedDate; // Allow selectedDate to be null
   bool _isButtonDisabled = true;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_checkIfEmpty);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await NotificationApi.init(initScheduled: true);
-      listenNotifications();
-      NotificationApi.checkNotificationPermissions().then((value) {
-        NotificationApi.notificationPermission = value ?? true;
-      });
-    });
+    _initializeNotifications();
+    tz.initializeTimeZones(); // Add this line
   }
-
-  void listenNotifications() => NotificationApi.onNotifications;
 
   void _checkIfEmpty() {
     setState(() {
       _isButtonDisabled = _controller.text.isEmpty;
     });
+  }
+
+  void _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+    const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> _scheduleNotification(String text, DateTime scheduledDate) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'your_channel_id', 'your_channel_name', channelDescription: 'your_channel_description',
+      importance: Importance.max, priority: Priority.high, showWhen: false);
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      0, 'ToDo Reminder', text, 
+      tz.TZDateTime.from(scheduledDate, tz.local), // Convert to TZDateTime
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Add this line
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time);
   }
 
   @override
@@ -45,6 +61,7 @@ class _AddListState extends State<AddList> {
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
+              if (!mounted) return; // Add this line
               Navigator.pop(context);
             },
           ),
@@ -113,12 +130,23 @@ class _AddListState extends State<AddList> {
                 padding: const EdgeInsets.all(20),
                 child: ElevatedButton(
                   
-                  onPressed: _isButtonDisabled ? null : () {
+                  onPressed: _isButtonDisabled ? null : () async {
                     final newItem = Todolist(
                       _controller.text, 
                       date: _selectedDate?.toIso8601String().split('T').first,
                       time: _selectedTime?.format(context),
                     );
+                    if (_selectedDate != null && _selectedTime != null) {
+                      final DateTime scheduledDate = DateTime(
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day,
+                        _selectedTime!.hour,
+                        _selectedTime!.minute,
+                      );
+                      await _scheduleNotification(_controller.text, scheduledDate);
+                    }
+                    if (!mounted) return; // Add this line
                     Navigator.pop(context, newItem); // Pass new item back to HomeScreen
                   },
                   child: const Text('Simpan'),
@@ -154,23 +182,6 @@ class _AddListState extends State<AddList> {
       setState(() {
         _selectedTime = picked;
       });
-
-      if (_selectedDate != null && NotificationApi.notificationPermission) {
-        final scheduledDate = DateTime(
-          _selectedDate!.year,
-          _selectedDate!.month,
-          _selectedDate!.day,
-          _selectedTime!.hour,
-          _selectedTime!.minute,
-        );
-
-        NotificationApi.showScheduledNotification(
-          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          title: 'Reminder',
-          body: _controller.text,
-          scheduledDate: scheduledDate,
-        );
-      }
     }
   }
 
