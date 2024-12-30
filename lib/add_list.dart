@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 
 class AddList extends StatefulWidget {
   const AddList ({super.key});
@@ -16,40 +13,17 @@ class _AddListState extends State<AddList> {
   TimeOfDay? _selectedTime;
   DateTime? _selectedDate; // Allow selectedDate to be null
   bool _isButtonDisabled = true;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_checkIfEmpty);
-    _initializeNotifications();
-    tz.initializeTimeZones(); // Add this line
   }
 
   void _checkIfEmpty() {
     setState(() {
       _isButtonDisabled = _controller.text.isEmpty;
     });
-  }
-
-  void _initializeNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
-    const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  }
-
-  Future<void> _scheduleNotification(String text, DateTime scheduledDate) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'your_channel_id', 'your_channel_name', channelDescription: 'your_channel_description',
-      importance: Importance.max, priority: Priority.high, showWhen: false);
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0, 'ToDo Reminder', text, 
-      tz.TZDateTime.from(scheduledDate, tz.local), // Convert to TZDateTime
-      platformChannelSpecifics,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Add this line
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time);
   }
 
   @override
@@ -136,16 +110,6 @@ class _AddListState extends State<AddList> {
                       date: _selectedDate?.toIso8601String().split('T').first,
                       time: _selectedTime?.format(context),
                     );
-                    if (_selectedDate != null && _selectedTime != null) {
-                      final DateTime scheduledDate = DateTime(
-                        _selectedDate!.year,
-                        _selectedDate!.month,
-                        _selectedDate!.day,
-                        _selectedTime!.hour,
-                        _selectedTime!.minute,
-                      );
-                      await _scheduleNotification(_controller.text, scheduledDate);
-                    }
                     if (!mounted) return; // Add this line
                     Navigator.pop(context, newItem); // Pass new item back to HomeScreen
                   },

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 import 'dart:async';
 
 class EditList extends StatefulWidget {
@@ -23,7 +20,6 @@ class EditListState extends State<EditList> {
   late TextEditingController _timeController;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -36,41 +32,6 @@ class EditListState extends State<EditList> {
       hour: int.parse(widget.initialTime!.split(':')[0]),
       minute: int.parse(widget.initialTime!.split(' ')[0].split(':')[1]),
     ) : null; // Initialize selected time
-    tz.initializeTimeZones();
-    _initializeNotifications();
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-  }
-
-  void _initializeNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  }
-
-  Future<void> _scheduleNotification(String title, DateTime dateTime) async {
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
-      'Pengingat ToDo',
-      title,
-      tz.TZDateTime.from(dateTime, tz.local),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'your_channel_id', 'Your Channel Name',
-          channelDescription: 'Your channel description',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker'
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
-    );
-
-    debugPrint('Notifikasi dijadwalkan pada $dateTime dengan judul: $title');
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -164,16 +125,6 @@ class EditListState extends State<EditList> {
                         date: _dateController.text.isEmpty ? null : _dateController.text,
                         time: _timeController.text.isEmpty ? null : _timeController.text,
                       );
-                      if (_selectedDate != null && _selectedTime != null) {
-                        final scheduledDate = DateTime(
-                          _selectedDate!.year,
-                          _selectedDate!.month,
-                          _selectedDate!.day,
-                          _selectedTime!.hour,
-                          _selectedTime!.minute,
-                        );
-                        _scheduleNotification(_textController.text, scheduledDate);
-                      }
                       Navigator.pop(context, updatedItem);
                     },
                     child: const Text(
