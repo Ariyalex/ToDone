@@ -1,25 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/to_do_list.dart';
 import 'package:to_do_list/jadwal.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:to_do_list/main.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-Future<void> onDidReceiveBackgroundNotificationResponse(
-    NotificationResponse notificationResponse) async {
-  final String? payload = notificationResponse.payload;
-  if (payload != null) {
-    debugPrint('notification payload: $payload');
-  }
-  // Ensure the context is available when this function is called
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    Navigator.push(
-      navigatorKey.currentContext!,
-      SlidePageRoute(page: const HomePage()),
-    );
-  });
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,8 +15,6 @@ class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController(
     initialPage: 0,
   );
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
 
   int _selectedIndex = 0;
 

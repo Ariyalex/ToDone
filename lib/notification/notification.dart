@@ -14,12 +14,16 @@ class NotificationService {
   //initialize the notification plugin
   static Future<void> init() async {
     //define the android initialization settings
-    const AndroidInitializationSettings androidInitializationSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings("@mipmap/ic_launcher");
+
+    //initialize the android settings
+    const InitializationSettings androidInitializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
 
     //initialize the plugin with the specified settings
     await flutterLocalNotificationsPlugin.initialize(
-      const InitializationSettings(android: androidInitializationSettings),
+      androidInitializationSettings,
       onDidReceiveNotificationResponse: onDidReceiveNotification,
       onDidReceiveBackgroundNotificationResponse: onDidReceiveNotification,
     );
