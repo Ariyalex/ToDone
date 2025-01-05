@@ -4,18 +4,21 @@ import 'package:to_do_list/data/list.dart'; // Import the Todolist class
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import 'dart:convert'; // Import json
 import 'package:to_do_list/edit.dart'; // Import the EditList class
-import 'package:to_do_list/function.dart';
-import 'package:timezone/data/latest.dart' as tz; 
+import 'package:to_do_list/main.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
-class ToDoList extends StatefulWidget { // Change class name
+class ToDoList extends StatefulWidget {
+  // Change class name
   const ToDoList({super.key});
 
   @override
   State<ToDoList> createState() => _ToDoListState(); // Update state class name
 }
 
-class _ToDoListState extends State<ToDoList> { // Change state class name
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add GlobalKey
+class _ToDoListState extends State<ToDoList> {
+  // Change state class name
+  final GlobalKey<ScaffoldState> _scaffoldKey =
+      GlobalKey<ScaffoldState>(); // Add GlobalKey
 
   DateTime selectedDate = DateTime.now();
   TimeOfDay selecedTime = TimeOfDay.now();
@@ -34,7 +37,9 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
 
   void _addToDoItem(Todolist item) async {
     setState(() {
-      Todolist.addTodoItem(item.listTodo, date: item.date, time: item.time); // Add item with date and time to Todolist
+      Todolist.addTodoItem(item.listTodo,
+          date: item.date,
+          time: item.time); // Add item with date and time to Todolist
     });
     await Todolist.saveTodoList(); // Save the updated todo list
 
@@ -43,7 +48,8 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
 
   void _updateToDoList() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('todoList', Todolist.todoList.map((e) => json.encode(e.toJson())).toList());
+    prefs.setStringList('todoList',
+        Todolist.todoList.map((e) => json.encode(e.toJson())).toList());
   }
 
   void _deleteCheckedItems() async {
@@ -69,7 +75,8 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
           ),
         ),
         actions: [
-          if (Todolist.todoList.any((item) => item.isDone)) // Check if any item is checked
+          if (Todolist.todoList
+              .any((item) => item.isDone)) // Check if any item is checked
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: _deleteCheckedItems,
@@ -78,7 +85,8 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () {
-            _scaffoldKey.currentState?.openDrawer(); // Use GlobalKey to open the drawer
+            _scaffoldKey.currentState
+                ?.openDrawer(); // Use GlobalKey to open the drawer
           },
         ),
       ),
@@ -135,7 +143,8 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
         padding: const EdgeInsets.all(20),
         child: Column(
           children: <Widget>[
-            if (Todolist.todoList.isEmpty) ...[ // Check if Todolist is empty
+            if (Todolist.todoList.isEmpty) ...[
+              // Check if Todolist is empty
               Expanded(
                 child: Center(
                   child: Column(
@@ -162,24 +171,32 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                       children: [
                         GestureDetector(
                           onTap: () async {
-                            if (index >= 0 && index < Todolist.todoList.length) {
+                            if (index >= 0 &&
+                                index < Todolist.todoList.length) {
                               final result = await Navigator.push(
                                 context,
                                 SlidePageRoute(
                                   page: EditList(
                                     index: index,
-                                    initialText: Todolist.todoList[index].listTodo,
-                                    initialDate: Todolist.todoList[index].date, // Pass the initial date
-                                    initialTime: Todolist.todoList[index].time, // Pass the initial time
+                                    initialText:
+                                        Todolist.todoList[index].listTodo,
+                                    initialDate: Todolist.todoList[index]
+                                        .date, // Pass the initial date
+                                    initialTime: Todolist.todoList[index]
+                                        .time, // Pass the initial time
                                   ),
                                 ),
                               );
                               if (result != null) {
                                 setState(() {
-                                  Todolist.todoList[index].listTodo = result.listTodo;
-                                  Todolist.todoList[index].date = result.date; // Update the date
-                                  Todolist.todoList[index].time = result.time; // Update the time
-                                  Todolist.todoList[index].isDone = result.isDone;
+                                  Todolist.todoList[index].listTodo =
+                                      result.listTodo;
+                                  Todolist.todoList[index].date =
+                                      result.date; // Update the date
+                                  Todolist.todoList[index].time =
+                                      result.time; // Update the time
+                                  Todolist.todoList[index].isDone =
+                                      result.isDone;
                                 });
                                 await Todolist.saveTodoList();
                               }
@@ -200,9 +217,18 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                                     child: Text(
                                       Todolist.todoList[index].listTodo,
                                       style: TextStyle(
-                                        decoration: Todolist.todoList[index].isDone ? TextDecoration.lineThrough : TextDecoration.none,
-                                        decorationColor: Todolist.todoList[index].isDone ? Colors.red : Colors.transparent,
-                                        decorationThickness: Todolist.todoList[index].isDone ? 2.0 : 1.0,
+                                        decoration:
+                                            Todolist.todoList[index].isDone
+                                                ? TextDecoration.lineThrough
+                                                : TextDecoration.none,
+                                        decorationColor:
+                                            Todolist.todoList[index].isDone
+                                                ? Colors.red
+                                                : Colors.transparent,
+                                        decorationThickness:
+                                            Todolist.todoList[index].isDone
+                                                ? 2.0
+                                                : 1.0,
                                       ),
                                     ),
                                   ),
@@ -210,16 +236,20 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                               ),
                               subtitle: Row(
                                 children: [
-                                  Text(Todolist.todoList[index].date ?? 'Tanggal tidak dipilih'), // Display default text if date is null
+                                  Text(Todolist.todoList[index].date ??
+                                      'Tanggal tidak dipilih'), // Display default text if date is null
                                   const SizedBox(width: 10),
-                                  Text(Todolist.todoList[index].time ?? ''), // Ensure time is displayed
+                                  Text(Todolist.todoList[index].time ??
+                                      ''), // Ensure time is displayed
                                 ],
                               ), // Display the date
                               trailing: Checkbox(
-                                value: Todolist.todoList[index].isDone, // Use isDone status
+                                value: Todolist.todoList[index]
+                                    .isDone, // Use isDone status
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    Todolist.todoList[index].isDone = value ?? false; // Update isDone status
+                                    Todolist.todoList[index].isDone =
+                                        value ?? false; // Update isDone status
                                   });
                                   _updateToDoList(); // Save updated status
                                 },
@@ -227,7 +257,8 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10), // Add gap between list items
+                        const SizedBox(
+                            height: 10), // Add gap between list items
                       ],
                     );
                   },
@@ -241,7 +272,8 @@ class _ToDoListState extends State<ToDoList> { // Change state class name
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            SlidePageRoute(page: const AddList()), // Use page instead of builder
+            SlidePageRoute(
+                page: const AddList()), // Use page instead of builder
           );
           if (result != null) {
             _addToDoItem(result);

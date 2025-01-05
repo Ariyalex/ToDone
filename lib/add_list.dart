@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
+import 'package:to_do_list/notification/notification.dart';
 
 class AddList extends StatefulWidget {
-  const AddList ({super.key});
+  const AddList({super.key});
 
   @override
   State<AddList> createState() => _AddListState();
@@ -31,22 +32,21 @@ class _AddListState extends State<AddList> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFA294F9),
-        leading: 
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              if (!mounted) return; // Add this line
-              Navigator.pop(context);
-            },
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            if (!mounted) return; // Add this line
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
-            'ToDone',
-            style: TextStyle(
-              color: Color(0xFFF5EFFF),
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          'ToDone',
+          style: TextStyle(
+            color: Color(0xFFF5EFFF),
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
+        ),
       ),
       body: Column(
         children: <Widget>[
@@ -74,7 +74,7 @@ class _AddListState extends State<AddList> {
                     Text(
                       getFormattedDate(_selectedDate),
                       style: const TextStyle(fontSize: 20),
-                      ),
+                    ),
                   ],
                 ),
               ],
@@ -87,11 +87,13 @@ class _AddListState extends State<AddList> {
               children: [
                 FilledButton(
                   onPressed: () => _pickTime(),
-                   child: const Text('Pilih Waktu'),
+                  child: const Text('Pilih Waktu'),
                 ),
                 const SizedBox(width: 20),
                 Text(
-                  _selectedTime == null ? 'Waktu tidak dipilih' : _selectedTime!.format(context),
+                  _selectedTime == null
+                      ? 'Waktu tidak dipilih'
+                      : _selectedTime!.format(context),
                   style: const TextStyle(fontSize: 20),
                 ),
               ],
@@ -103,16 +105,35 @@ class _AddListState extends State<AddList> {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: ElevatedButton(
-                  
-                  onPressed: _isButtonDisabled ? null : () async {
-                    final newItem = Todolist(
-                      _controller.text, 
-                      date: _selectedDate?.toIso8601String().split('T').first,
-                      time: _selectedTime?.format(context),
-                    );
-                    if (!mounted) return; // Add this line
-                    Navigator.pop(context, newItem); // Pass new item back to HomeScreen
-                  },
+                  onPressed: _isButtonDisabled
+                      ? null
+                      : () async {
+                          final newItem = Todolist(
+                            _controller.text,
+                            date: _selectedDate
+                                ?.toIso8601String()
+                                .split('T')
+                                .first,
+                            time: _selectedTime?.format(context),
+                          );
+                          if (!mounted) return;
+                          Navigator.pop(context, newItem);
+
+                          if (_selectedDate != null && _selectedTime != null) {
+                            final DateTime scheduledDateTime = DateTime(
+                              _selectedDate!.year,
+                              _selectedDate!.month,
+                              _selectedDate!.day,
+                              _selectedTime!.hour,
+                              _selectedTime!.minute,
+                            );
+                            await NotificationService.scheduleNotification(
+                              "sudah saatnya",
+                              _controller.text,
+                              scheduledDateTime,
+                            );
+                          }
+                        },
                   child: const Text('Simpan'),
                 ),
               ),
@@ -154,4 +175,3 @@ class _AddListState extends State<AddList> {
     return "${date.day}-${date.month}-${date.year}";
   }
 }
-

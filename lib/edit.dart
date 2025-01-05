@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/data/list.dart';
+import 'package:to_do_list/notification/notification.dart';
 import 'dart:async';
 
 class EditList extends StatefulWidget {
@@ -8,7 +9,12 @@ class EditList extends StatefulWidget {
   final String? initialDate; // Allow initialDate to be null
   final String? initialTime;
 
-  const EditList({super.key, required this.index, required this.initialText, this.initialDate, this.initialTime});
+  const EditList(
+      {super.key,
+      required this.index,
+      required this.initialText,
+      this.initialDate,
+      this.initialTime});
 
   @override
   EditListState createState() => EditListState();
@@ -25,13 +31,19 @@ class EditListState extends State<EditList> {
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.initialText);
-    _dateController = TextEditingController(text: widget.initialDate ?? ''); // Initialize date controller
-    _timeController = TextEditingController(text: widget.initialTime ?? ''); // Initialize time controller
-    _selectedDate = widget.initialDate != null ? DateTime.tryParse(widget.initialDate!) : null; // Initialize selected date
-    _selectedTime = widget.initialTime != null ? TimeOfDay(
-      hour: int.parse(widget.initialTime!.split(':')[0]),
-      minute: int.parse(widget.initialTime!.split(' ')[0].split(':')[1]),
-    ) : null; // Initialize selected time
+    _dateController = TextEditingController(
+        text: widget.initialDate ?? ''); // Initialize date controller
+    _timeController = TextEditingController(
+        text: widget.initialTime ?? ''); // Initialize time controller
+    _selectedDate = widget.initialDate != null
+        ? DateTime.tryParse(widget.initialDate!)
+        : null; // Initialize selected date
+    _selectedTime = widget.initialTime != null
+        ? TimeOfDay(
+            hour: int.parse(widget.initialTime!.split(':')[0]),
+            minute: int.parse(widget.initialTime!.split(' ')[0].split(':')[1]),
+          )
+        : null; // Initialize selected time
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -44,7 +56,8 @@ class EditListState extends State<EditList> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = _selectedDate!.toIso8601String().split('T').first;
+        _dateController.text =
+            _selectedDate!.toIso8601String().split('T').first;
       });
     }
   }
@@ -57,7 +70,8 @@ class EditListState extends State<EditList> {
     if (picked != null && picked != _selectedTime) {
       setState(() {
         _selectedTime = picked;
-        _timeController.text = _selectedTime!.format(context); // Ensure time is formatted correctly
+        _timeController.text = _selectedTime!
+            .format(context); // Ensure time is formatted correctly
       });
     }
   }
@@ -82,13 +96,13 @@ class EditListState extends State<EditList> {
           },
         ),
         title: const Text(
-            'ToDone',
-            style: TextStyle(
-              color: Color(0xFFF5EFFF),
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          'ToDone',
+          style: TextStyle(
+            color: Color(0xFFF5EFFF),
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -122,17 +136,36 @@ class EditListState extends State<EditList> {
                       final updatedItem = Todolist(
                         _textController.text,
                         isDone: Todolist.todoList[widget.index].isDone,
-                        date: _dateController.text.isEmpty ? null : _dateController.text,
-                        time: _timeController.text.isEmpty ? null : _timeController.text,
+                        date: _dateController.text.isEmpty
+                            ? null
+                            : _dateController.text,
+                        time: _timeController.text.isEmpty
+                            ? null
+                            : _timeController.text,
                       );
                       Navigator.pop(context, updatedItem);
+
+                      if (_selectedDate != null && _selectedTime != null) {
+                        final DateTime scheduledDateTime = DateTime(
+                          _selectedDate!.year,
+                          _selectedDate!.month,
+                          _selectedDate!.day,
+                          _selectedTime!.hour,
+                          _selectedTime!.minute,
+                        );
+                        NotificationService.scheduleNotification(
+                          "sudah saatnya",
+                          _textController.text,
+                          scheduledDateTime,
+                        );
+                      }
                     },
                     child: const Text(
                       'Save',
                       style: TextStyle(
                         fontSize: 16,
                       ),
-                      ),
+                    ),
                   ),
                 ],
               ),
