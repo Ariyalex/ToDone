@@ -78,7 +78,10 @@ class _ToDoListState extends State<ToDoList> {
           if (Todolist.todoList
               .any((item) => item.isDone)) // Check if any item is checked
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
               onPressed: _deleteCheckedItems,
             ),
         ],
