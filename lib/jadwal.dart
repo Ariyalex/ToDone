@@ -72,43 +72,73 @@ class _JadwalPageState extends State<JadwalPage> {
             icon: const Icon(
               Icons.add,
               color: Colors.white,
-              size: 30,
+              size: 34,
             ),
           )
         ],
       ),
       body: schedules.isEmpty
           ? Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AddJadwal()),
-                  ).then((_) => _loadSchedules());
-                },
-                child: const Text('Tambahkan Jadwal'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                      "Belum ada jadwal yang ditambahkan, tambahkan jadwal lewat tombol dibawah atau tombol '+' di pojok kanan atas"),
+                  const SizedBox(height: 20),
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AddJadwal()),
+                      ).then((_) => _loadSchedules());
+                    },
+                    child: const Text('Tambahkan Jadwal',
+                        style: TextStyle(fontSize: 18)),
+                  ),
+                ],
               ),
             )
           : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+              scrollDirection: Axis.vertical,
               child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Hari')),
-                    DataColumn(label: Text('Waktu')),
-                    DataColumn(label: Text('Nama Kegiatan')),
-                  ],
-                  rows: schedules.map((schedule) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(schedule['day']!)),
-                        DataCell(Text(
-                            '${schedule['startTime']} - ${schedule['endTime']}')),
-                        DataCell(Text(schedule['activity']!)),
-                      ],
-                    );
-                  }).toList(),
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                      minWidth: MediaQuery.of(context).size.width),
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(
+                        label: Text(
+                          'HARI',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'WAKTU',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'NAMA KEGIATAN',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                    rows: schedules.map((schedule) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(schedule['day']!)),
+                          DataCell(Text(
+                              '${schedule['startTime']} - ${schedule['endTime']}')),
+                          DataCell(Text(schedule['activity']!)),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
@@ -169,6 +199,12 @@ class _AddJadwalState extends State<AddJadwal> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(
             255, 97, 190, 100), // Adjust this to match home_screen.dart
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
           'Tambah Jadwal',
           style: TextStyle(
@@ -225,36 +261,45 @@ class _AddJadwalState extends State<AddJadwal> {
                 },
               ),
               const SizedBox(height: 20),
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_startTime != null)
-                          Text('Jam Awal: ${_startTime!.format(context)}',
-                              style: const TextStyle(fontSize: 18)),
-                        FilledButton(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: FilledButton(
                           onPressed: () => _selectStartTime(context),
                           child: const Text('Pilih Jam Awal'),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_endTime != null)
-                          Text('Jam Akhir: ${_endTime!.format(context)}',
+                      ),
+                      if (_startTime != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                              'Jam Awal: ${_startTime!.format(context)}',
                               style: const TextStyle(fontSize: 18)),
-                        FilledButton(
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 50),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: FilledButton(
                           onPressed: () => _selectEndTime(context),
                           child: const Text('Pilih Jam Akhir'),
                         ),
-                      ],
-                    ),
+                      ),
+                      if (_endTime != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('Jam Akhir: ${_endTime!.format(context)}',
+                              style: const TextStyle(fontSize: 18)),
+                        ),
+                    ],
                   ),
                 ],
               ),

@@ -32,7 +32,19 @@ class _ToDoListState extends State<ToDoList> {
 
   void _loadToDoList() async {
     await Todolist.loadTodoList();
-    setState(() {});
+    setState(() {
+      Todolist.todoList.sort((a, b) {
+        if (a.date == null && b.date == null) return 0;
+        if (a.date == null) return 1;
+        if (b.date == null) return -1;
+        int dateComparison = a.date!.compareTo(b.date!);
+        if (dateComparison != 0) return dateComparison;
+        if (a.time == null && b.time == null) return 0;
+        if (a.time == null) return 1;
+        if (b.time == null) return -1;
+        return a.time!.compareTo(b.time!);
+      });
+    });
   }
 
   void _addToDoItem(Todolist item) async {
@@ -40,6 +52,17 @@ class _ToDoListState extends State<ToDoList> {
       Todolist.addTodoItem(item.listTodo,
           date: item.date,
           time: item.time); // Add item with date and time to Todolist
+      Todolist.todoList.sort((a, b) {
+        if (a.date == null && b.date == null) return 0;
+        if (a.date == null) return 1;
+        if (b.date == null) return -1;
+        int dateComparison = a.date!.compareTo(b.date!);
+        if (dateComparison != 0) return dateComparison;
+        if (a.time == null && b.time == null) return 0;
+        if (a.time == null) return 1;
+        if (b.time == null) return -1;
+        return a.time!.compareTo(b.time!);
+      });
     });
     await Todolist.saveTodoList(); // Save the updated todo list
 
@@ -167,12 +190,26 @@ class _ToDoListState extends State<ToDoList> {
               ),
             ] else ...[
               Expanded(
-                child: ListView.builder(
-                  itemCount: Todolist.todoList.length, // Use Todolist length
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        GestureDetector(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    int columns = 1; // Default to 1 column for small screens
+                    if (constraints.maxWidth > 600) {
+                      columns = 2; // Use 2 columns for medium screens
+                    }
+                    if (constraints.maxWidth > 1200) {
+                      columns = 3; // Use 3 columns for wide screens
+                    }
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        mainAxisExtent: 70, // Set a fixed height for each item
+                      ),
+                      itemCount:
+                          Todolist.todoList.length, // Use Todolist length
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
                           onTap: () async {
                             if (index >= 0 &&
                                 index < Todolist.todoList.length) {
@@ -259,10 +296,8 @@ class _ToDoListState extends State<ToDoList> {
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                            height: 10), // Add gap between list items
-                      ],
+                        );
+                      },
                     );
                   },
                 ),
