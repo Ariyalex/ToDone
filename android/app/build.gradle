@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.to_do_list"
     compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "25.18937393"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -17,7 +17,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+        jvmTarget = 17
     }
 
     defaultConfig {
