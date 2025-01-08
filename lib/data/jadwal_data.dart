@@ -31,4 +31,11 @@ class JadwalData {
           .toList();
     }
   }
+
+  static Future<void> saveSchedules(
+      List<Map<String, String>> updatedSchedules) async {
+    final prefs = await SharedPreferences.getInstance();
+    schedules = updatedSchedules;
+    await prefs.setString('schedules', json.encode(schedules));
+  }
 }

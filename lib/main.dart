@@ -17,6 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      theme: ThemeData(
+        fontFamily: 'Helvetica', // Set the default font family to Helvetica
+      ),
       home: const HomePage(),
       navigatorKey: navigatorKey,
     );

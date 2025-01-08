@@ -120,8 +120,8 @@ class _ToDoListState extends State<ToDoList> {
         width: 250, // Set the width of the Drawer
         child: ListView(
           padding: EdgeInsets.zero,
-          children: <Widget>[
-            const SizedBox(
+          children: const <Widget>[
+            SizedBox(
               height: 165,
               child: DrawerHeader(
                 decoration: BoxDecoration(
@@ -151,16 +151,13 @@ class _ToDoListState extends State<ToDoList> {
               ),
             ),
             ListTile(
-              title: const Text('To Do List'),
-              onTap: () {
-                null;
-              },
-            ),
-            ListTile(
-              title: const Text('Jadwal'),
-              onTap: () {
-                null;
-              },
+              title: Text("Cara penggunaan To Do List:"),
+              subtitle: Text(
+                "1. Tambahkan item dengan menekan tombol +.\n"
+                "2. Ketuk item untuk mengedit.\n"
+                "3. Tandai item selesai dengan mencentang kotak.\n"
+                "4. Hapus item yang selesai dengan menekan ikon tempat sampah.",
+              ),
             ),
           ],
         ),
@@ -181,8 +178,11 @@ class _ToDoListState extends State<ToDoList> {
                         width: 400,
                       ),
                       const Text(
-                        'Belum ada To Do List, coba tambahkan lewat tombol di bawah',
+                        'Belum ada To Do List, coba tambahkan lewat tombol di bawah.\n cara penggunaan cek di menu kiri atas',
                         textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),
@@ -199,16 +199,11 @@ class _ToDoListState extends State<ToDoList> {
                     if (constraints.maxWidth > 1200) {
                       columns = 3; // Use 3 columns for wide screens
                     }
-                    return GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        mainAxisExtent: 70, // Set a fixed height for each item
-                      ),
-                      itemCount:
-                          Todolist.todoList.length, // Use Todolist length
-                      itemBuilder: (context, index) {
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children:
+                          List.generate(Todolist.todoList.length, (index) {
                         return GestureDetector(
                           onTap: () async {
                             if (index >= 0 &&
@@ -243,6 +238,8 @@ class _ToDoListState extends State<ToDoList> {
                             }
                           },
                           child: Container(
+                            width: (constraints.maxWidth / columns) -
+                                10, // Adjust width based on columns
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10),
@@ -297,7 +294,7 @@ class _ToDoListState extends State<ToDoList> {
                             ),
                           ),
                         );
-                      },
+                      }),
                     );
                   },
                 ),
